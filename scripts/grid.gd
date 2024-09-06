@@ -37,8 +37,9 @@ var final_touch = Vector2.ZERO
 var is_controlling = false
 
 # scoring variables and signals
-
-
+var current_score = 0
+var moves_left = 30
+@onready var ui_node = get_parent().get_node("top_ui")
 # counter variables and signals
 
 
@@ -48,6 +49,21 @@ func _ready():
 	randomize()
 	all_pieces = make_2d_array()
 	spawn_pieces()
+	# Initialize the UI with the starting values
+	ui_node.update_score(current_score)
+	ui_node.update_moves(moves_left)
+
+# Increment score and update UI
+func increment_score(points: int):
+	current_score += points
+	ui_node.update_score(current_score)
+	
+# Decrement moves and update UI
+func decrement_moves():
+	moves_left -= 1
+	ui_node.update_moves(moves_left)
+	if moves_left <= 0:
+		game_over()
 
 func make_2d_array():
 	var array = []
@@ -180,6 +196,8 @@ func find_matches():
 					all_pieces[i][j].dim()
 					all_pieces[i + 1][j].matched = true
 					all_pieces[i + 1][j].dim()
+					# Add points for the match
+					increment_score(10)
 				# detect vertical matches
 				if (
 					j > 0 and j < height -1 
@@ -194,8 +212,10 @@ func find_matches():
 					all_pieces[i][j].dim()
 					all_pieces[i][j + 1].matched = true
 					all_pieces[i][j + 1].dim()
-					
+					# Add points for the match
+					increment_score(10)
 	get_parent().get_node("destroy_timer").start()
+	decrement_moves()
 	
 func destroy_matched():
 	var was_matched = false
