@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://ebf3quh1hwqa"]
+
+[ext_resource type="PackedScene" uid="uid://dimhfx4c1igfv" path="res://scenes/piece.tscn" id="1_sxetl"]
+[ext_resource type="Texture2D" uid="uid://dlqi7mlb0pkkf" path="res://assets/pieces/Light Green Adjacent.png" id="2_cq4b1"]
+
+[node name="LightGreenBig" instance=ExtResource("1_sxetl")]
+color = "light_green"
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_cq4b1")

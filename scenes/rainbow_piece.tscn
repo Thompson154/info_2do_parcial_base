@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://clwc7it4px3iw"]
+
+[ext_resource type="PackedScene" uid="uid://dimhfx4c1igfv" path="res://scenes/piece.tscn" id="1_5820b"]
+[ext_resource type="Texture2D" uid="uid://d1ucglmj14llv" path="res://assets/pieces/Rainbow.png" id="2_ufq51"]
+
+[node name="BlueBig" instance=ExtResource("1_5820b")]
+color = "blue"
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_ufq51")
