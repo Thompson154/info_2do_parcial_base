@@ -84,10 +84,10 @@ signal score_updated(points)
 signal move_counter()
 var moves = 30
 var deduct_move = false
-
+var current_score = 0
 var moves_left = 10
 var score_threshold = 120
-
+@onready var ui_node = get_parent().get_node("top_ui")
 #levels
 var current_level = 1
 var max_levels = 2  # Ajusta según el número de niveles
@@ -202,7 +202,7 @@ func swap_pieces(column, row, direction: Vector2) -> bool:
 	
 	
 	if first_piece == null or other_piece == null:
-		return
+		return true
 	var is_first_rainbow = first_piece.type == rnbw
 	var is_other_rainbow =  other_piece.type == rnbw
 	
@@ -264,7 +264,7 @@ func _process(delta):
 	if state == MOVE:
 		touch_input()
 
-func find_matches():
+func find_matches2():
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null:
@@ -487,7 +487,6 @@ func find_matches():
 		for j in height:
 			if all_pieces[i][j] != null:
 				var current_color = all_pieces[i][j].color
-				
 				if matchType1(i, j) or matchType2(i, j):
 					replace_with_special_piece(i, j, current_color, adj)
 				if i <= width - 5:
@@ -505,6 +504,7 @@ func find_matches():
 				if j <= height - 5:
 					if is_match(i, j, Vector2(0, 1), 5):
 						replace_with_special_piece(i, j + 2, current_color, rnbw)
+
 						continue
 					elif is_match(i, j, Vector2(0, 1), 4):
 						replace_with_special_piece(i, j + 1, current_color, col)
@@ -517,7 +517,7 @@ func find_matches():
 					remove_pieces(i, j, true)
 				if j > 0 and j < height - 1 and is_match(i, j, Vector2(0, 1), 3):
 					remove_pieces(i, j, false)
-
+	increment_score(10)
 	get_parent().get_node("destroy_timer").start()
 
 func is_match(i, j, direction: Vector2, length: int) -> bool:
