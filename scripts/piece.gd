@@ -1,6 +1,7 @@
 extends Node2D
 
 @export var color: String
+@export var type = "normal"
 
 var matched = false
 
