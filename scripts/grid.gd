@@ -38,10 +38,19 @@ var is_controlling = false
 
 # scoring variables and signals
 var current_score = 0
-var moves_left = 30
+var moves_left = 10
+var score_threshold = 120
 @onready var ui_node = get_parent().get_node("top_ui")
 # counter variables and signals
 
+
+
+#levels
+var current_level = 1
+var max_levels = 2  # Ajusta según el número de niveles
+var level_time = 40  # Tiempo restante para niveles basados en tiempo
+var level_moves = 0  # Movimientos restantes para niveles basados en movimientos
+var is_level_time_based = true  # Cambia a false para niveles basados en movimientos
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -49,14 +58,37 @@ func _ready():
 	randomize()
 	all_pieces = make_2d_array()
 	spawn_pieces()
-	# Initialize the UI with the starting values
+	initialize_level()
+	## Initialize the UI with the starting values
 	ui_node.update_score(current_score)
+	#ui_node.update_moves(moves_left)
+
+func initialize_level():
+	moves_left = moves_left
 	ui_node.update_moves(moves_left)
+	
+func initialize_level2():
+	moves_left = 15
+	level_time = level_time
+	ui_node.update_moves(moves_left)
+	ui_node.update_time(level_time)
+	
+func next_level():
+	# Increase the level and set new thresholds or settings
+	current_level += 1
+	if current_level > max_levels:
+		# Implement game completion or final level logic
+		return 
+
+	initialize_level2()
 
 # Increment score and update UI
 func increment_score(points: int):
 	current_score += points
 	ui_node.update_score(current_score)
+	
+	if current_score >= score_threshold:
+		next_level()
 	
 # Decrement moves and update UI
 func decrement_moves():
@@ -130,22 +162,23 @@ func touch_input():
 		final_touch = grid_pos
 		touch_difference(first_touch, final_touch)
 
-func swap_pieces(column, row, direction: Vector2):
+func swap_pieces(column, row, direction: Vector2) -> bool:
 	var first_piece = all_pieces[column][row]
 	var other_piece = all_pieces[column + direction.x][row + direction.y]
 	if first_piece == null or other_piece == null:
-		return
-	# swap
+		return false  # No se hizo un movimiento válido
+
+	# Realizar el swap
 	state = WAIT
 	store_info(first_piece, other_piece, Vector2(column, row), direction)
 	all_pieces[column][row] = other_piece
 	all_pieces[column + direction.x][row + direction.y] = first_piece
-	#first_piece.position = grid_to_pixel(column + direction.x, row + direction.y)
-	#other_piece.position = grid_to_pixel(column, row)
 	first_piece.move(grid_to_pixel(column + direction.x, row + direction.y))
 	other_piece.move(grid_to_pixel(column, row))
 	if not move_checked:
 		find_matches()
+
+	return true  # Movimiento válido realizado
 
 func store_info(first_piece, other_piece, place, direction):
 	piece_one = first_piece
@@ -162,16 +195,21 @@ func swap_back():
 func touch_difference(grid_1, grid_2):
 	var difference = grid_2 - grid_1
 	# should move x or y?
+	var move_made = false
 	if abs(difference.x) > abs(difference.y):
 		if difference.x > 0:
-			swap_pieces(grid_1.x, grid_1.y, Vector2(1, 0))
+			move_made = swap_pieces(grid_1.x, grid_1.y, Vector2(1, 0))
 		elif difference.x < 0:
-			swap_pieces(grid_1.x, grid_1.y, Vector2(-1, 0))
-	if abs(difference.y) > abs(difference.x):
+			move_made = swap_pieces(grid_1.x, grid_1.y, Vector2(-1, 0))
+	elif abs(difference.y) > abs(difference.x):
 		if difference.y > 0:
-			swap_pieces(grid_1.x, grid_1.y, Vector2(0, 1))
+			move_made = swap_pieces(grid_1.x, grid_1.y, Vector2(0, 1))
 		elif difference.y < 0:
-			swap_pieces(grid_1.x, grid_1.y, Vector2(0, -1))
+			move_made = swap_pieces(grid_1.x, grid_1.y, Vector2(0, -1))
+
+	# Solo decrementar movimientos si se hizo un movimiento válido
+	if move_made:
+		decrement_moves()
 
 func _process(delta):
 	if state == MOVE:
@@ -215,7 +253,6 @@ func find_matches():
 					# Add points for the match
 					increment_score(10)
 	get_parent().get_node("destroy_timer").start()
-	decrement_moves()
 	
 func destroy_matched():
 	var was_matched = false
@@ -247,7 +284,6 @@ func collapse_columns():
 	get_parent().get_node("refill_timer").start()
 
 func refill_columns():
-	
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] == null:
@@ -294,4 +330,9 @@ func _on_refill_timer_timeout():
 	
 func game_over():
 	state = WAIT
-	print("game over")
+	if current_level < max_levels:
+		current_level += 1
+		initialize_level2()  
+		spawn_pieces()
+	else:
+		print("Juego terminado")
